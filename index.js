@@ -28,6 +28,20 @@ module.exports = {
         [/([\d.]+)\s*(?:in)?\s*x\s*([\d.]+)\s*in/, function(match, dimension) {
             dimension.width = match[1];
             dimension.height = match[2];
+        }],
+        [/^([\d.]+)\s*mm/, function(match, dimension) {
+            dimension.width = match[1];
+            dimension.height = match[1];
+        }],
+        [/^([\d.]+)\s*cm/, function(match, dimension) {
+            dimension.width = match[1];
+            dimension.height = match[1];
+        }],
+        [/^([\d.]+)\s*((?:\d+\/\d+)?)\s*in/, function(match, dimension) {
+            dimension.width = parseFloat(match[1]) +
+                (match[2] ? parseFraction(match[2]) : 0);
+            dimension.height = parseFloat(match[1]) +
+                (match[2] ? parseFraction(match[2]) : 0);
         }]
     ],
 
