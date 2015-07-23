@@ -1,4 +1,15 @@
+var parseFraction = function(num) {
+    var parts = num.split("/");
+    return parseFloat(parts[0]) / parseFloat(parts[1]);
+};
+
 module.exports = {
+    extraRules: [
+        [/\((.*?)\)/, function(match, dimension) {
+            dimension.label = match[1];
+        }]
+    ],
+
     dimensionRules: [
         [/([\d.]+)\s*(?:mm)?\s*x\s*([\d.]+)\s*mm/, function(match, dimension) {
             dimension.width = match[1];
@@ -9,8 +20,10 @@ module.exports = {
             dimension.height = match[2];
         }],
         [/([\d.]+)\s*((?:\d+\/\d+)?)\s*(?:in)?\s*x\s*([\d.]+)\s*((?:\d+\/\d+)?)\s*in/, function(match, dimension) {
-            dimension.width = match[1];
-            dimension.height = match[3];
+            dimension.width = parseFloat(match[1]) +
+                (match[2] ? parseFraction(match[2]) : 0);
+            dimension.height = parseFloat(match[3]) +
+                (match[4] ? parseFraction(match[4]) : 0);
         }],
         [/([\d.]+)\s*(?:in)?\s*x\s*([\d.]+)\s*in/, function(match, dimension) {
             dimension.width = match[1];
@@ -48,6 +61,18 @@ module.exports = {
             }
         }
 
+        for (var i = 0; i < this.extraRules.length; i++) {
+            var rule = this.extraRules[i];
+            var match = rule[0].exec(str);
+            if (match) {
+                if (this.debug) {
+                    console.log("extra hit", rule[0]);
+                }
+
+                rule[1].call(this, match, dimension);
+            }
+        }
+
         return dimension;
     },
 
@@ -66,7 +91,7 @@ module.exports = {
     },
 
     cleanString: function(str) {
-        str = str.toLowerCase();
+        //str = str.toLowerCase();
         str = this.stripPunctuation(str);
         return str;
     }
