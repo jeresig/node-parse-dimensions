@@ -100,6 +100,7 @@ module.exports = {
 
     stripPunctuation: function(str) {
         return str
+            .replace(/(\d),(\d)/g, "$1.$2")
             .replace(/\s+/, " ")
             .trim();
     },
