@@ -91,6 +91,10 @@ module.exports = {
     },
 
     parseDimensions: function(text) {
+        text = text.replace(/\(.*?\)/g, function(match) {
+            return match.replace(/;/g, ",");
+        });
+
         var parts = text.split(/\s*;\s*/);
 
         return parts.map(function(part) {
@@ -105,8 +109,13 @@ module.exports = {
             .trim();
     },
 
+    moveParens: function(str) {
+        return str.replace(/(\(.*?\))(.+)$/, "$2 $1");
+    },
+
     cleanString: function(str) {
         //str = str.toLowerCase();
+        str = this.moveParens(str);
         str = this.stripPunctuation(str);
         return str;
     }
