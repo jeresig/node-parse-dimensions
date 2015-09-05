@@ -16,36 +16,37 @@ module.exports = {
             dimension.height = match[2];
         }],
         [/([\d.]+)\s*(?:cm)?\s*x\s*([\d.]+)\s*(cm)/, function(match, dimension) {
-            dimension.width = match[1] * this.conversion[match[3]];
-            dimension.height = match[2] * this.conversion[match[3]];
+            dimension.width = match[1];
+            dimension.height = match[2];
+            dimension.unit = match[3];
         }],
         [/([\d.]+)\s*((?:\d+\/\d+)?)\s*(?:in)?\s*x\s*([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/, function(match, dimension) {
             dimension.width = (parseFloat(match[1]) +
-                (match[2] ? parseFraction(match[2]) : 0)) *
-                this.conversion[match[5]];
+                (match[2] ? parseFraction(match[2]) : 0));
             dimension.height = (parseFloat(match[3]) +
-                (match[4] ? parseFraction(match[4]) : 0)) *
-                this.conversion[match[5]];
+                (match[4] ? parseFraction(match[4]) : 0));
+            dimension.unit = match[5];
         }],
         [/([\d.]+)\s*(?:in)?\s*x\s*([\d.]+)\s*(in)/, function(match, dimension) {
-            dimension.width = match[1] * this.conversion[match[3]];
-            dimension.height = match[2] * this.conversion[match[3]];
+            dimension.width = match[1];
+            dimension.height = match[2];
+            dimension.unit = match[3];
         }],
         [/^([\d.]+)\s*mm/, function(match, dimension) {
             dimension.width = match[1];
             dimension.height = match[1];
         }],
         [/^([\d.]+)\s*(cm)/, function(match, dimension) {
-            dimension.width = match[1] * this.conversion[match[2]];
-            dimension.height = match[1] * this.conversion[match[2]];
+            dimension.width = match[1];
+            dimension.height = match[1];
+            dimension.unit = match[2];
         }],
         [/^([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/, function(match, dimension) {
             dimension.width = (parseFloat(match[1]) +
-                (match[2] ? parseFraction(match[2]) : 0)) *
-                this.conversion[match[3]];
+                (match[2] ? parseFraction(match[2]) : 0));
             dimension.height = (parseFloat(match[1]) +
-                (match[2] ? parseFraction(match[2]) : 0)) *
-                this.conversion[match[3]];
+                (match[2] ? parseFraction(match[2]) : 0));
+            dimension.unit = match[3];
         }]
     ],
 
@@ -78,16 +79,7 @@ module.exports = {
 
                 rule[1].call(this, match, dimension);
 
-                for (var prop in dimension) {
-                    if (typeof dimension[prop] === "string" &&
-                            prop !== "original" && prop !== "unit") {
-                        dimension[prop] = parseFloat(dimension[prop]);
-                    }
-
-                    if (typeof dimension[prop] === "number") {
-                        dimension[prop] = Math.round(dimension[prop]);
-                    }
-                }
+                this.convertDimension(dimension);
                 break;
             }
         }
@@ -103,6 +95,26 @@ module.exports = {
                 rule[1].call(this, match, dimension);
             }
         }
+
+        return dimension;
+    },
+
+    // Converts all dimensions to be in millimeters
+    convertDimension: function(dimension) {
+        for (var prop in dimension) {
+            if (typeof dimension[prop] === "string" &&
+                    prop !== "original" && prop !== "unit") {
+                dimension[prop] = parseFloat(dimension[prop]);
+            }
+
+            if (typeof dimension[prop] === "number") {
+                // Multiply by the unit and round the result
+                dimension[prop] = Math.round(dimension[prop] *
+                    this.conversion[dimension.unit]);
+            }
+        }
+
+        dimension.unit = "mm";
 
         return dimension;
     },
