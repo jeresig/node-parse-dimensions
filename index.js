@@ -57,7 +57,7 @@ module.exports = {
         "mm": 1
     },
 
-    parseDimension: function(str) {
+    parseDimension: function(str, flip) {
         var dimension = {
             original: str,
             unit: "mm"
@@ -96,6 +96,13 @@ module.exports = {
             }
         }
 
+        // Flip the width/height, if requested
+        if (flip) {
+            var tmp = dimension.width;
+            dimension.width = dimension.height;
+            dimension.height = tmp;
+        }
+
         return dimension;
     },
 
@@ -119,7 +126,7 @@ module.exports = {
         return dimension;
     },
 
-    parseDimensions: function(text) {
+    parseDimensions: function(text, flip) {
         text = text.replace(/\(.*?\)/g, function(match) {
             return match.replace(/;/g, ",");
         });
@@ -127,7 +134,7 @@ module.exports = {
         var parts = text.split(/\s*;\s*/);
 
         return parts.map(function(part) {
-            return this.parseDimension(part);
+            return this.parseDimension(part, flip);
         }.bind(this));
     },
 
