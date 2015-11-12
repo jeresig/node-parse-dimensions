@@ -51,10 +51,11 @@ module.exports = {
     ],
 
     conversion: {
-        "ft": 304.8,
-        "in": 25.4,
-        "cm": 10,
-        "mm": 1
+        ft: 304.8,
+        in: 25.4,
+        m: 1000,
+        cm: 10,
+        mm: 1
     },
 
     parseDimension: function(str, flip) {
@@ -79,7 +80,7 @@ module.exports = {
 
                 rule[1].call(this, match, dimension);
 
-                this.convertDimension(dimension);
+                this.convertDimension(dimension, dimension.unit);
                 break;
             }
         }
@@ -106,8 +107,10 @@ module.exports = {
         return dimension;
     },
 
-    // Converts all dimensions to be in millimeters
-    convertDimension: function(dimension) {
+    // Converts all dimensions to be in the specified unit
+    convertDimension: function(dimension, unit) {
+        unit = unit || "mm";
+
         for (var prop in dimension) {
             if (typeof dimension[prop] === "string" &&
                     prop !== "original" && prop !== "unit") {
@@ -115,13 +118,17 @@ module.exports = {
             }
 
             if (typeof dimension[prop] === "number") {
-                // Multiply by the unit and round the result
-                dimension[prop] = Math.round(dimension[prop] *
+                // Multiply by the unit
+                dimension[prop] = (dimension[prop] *
                     this.conversion[dimension.unit]);
+
+                // Divide by the expected unit and round the result
+                dimension[prop] = Math.round(dimension[prop] /
+                    this.conversion[unit]);
             }
         }
 
-        dimension.unit = "mm";
+        dimension.unit = unit;
 
         return dimension;
     },
