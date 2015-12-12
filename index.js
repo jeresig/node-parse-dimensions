@@ -58,10 +58,12 @@ module.exports = {
         mm: 1
     },
 
-    parseDimension: function(str, flip) {
+    parseDimension: function(str, flip, unit) {
+        unit = unit || "mm";
+
         var dimension = {
             original: str,
-            unit: "mm"
+            unit: unit
         };
 
         str = this.cleanString(str);
@@ -80,7 +82,7 @@ module.exports = {
 
                 rule[1].call(this, match, dimension);
 
-                this.convertDimension(dimension, dimension.unit);
+                this.convertDimension(dimension, unit);
                 break;
             }
         }
