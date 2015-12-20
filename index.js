@@ -120,19 +120,23 @@ module.exports = {
             }
 
             if (typeof dimension[prop] === "number") {
-                // Multiply by the unit
-                dimension[prop] = (dimension[prop] *
-                    this.conversion[dimension.unit]);
-
-                // Divide by the expected unit and round the result
-                dimension[prop] = Math.round(dimension[prop] /
-                    this.conversion[unit]);
+                dimension[prop] = this.convertNumber(
+                    dimension[prop], dimension.unit, unit);
             }
         }
 
         dimension.unit = unit;
 
         return dimension;
+    },
+
+    // Convert a single number from one unit to another
+    convertNumber: function(num, fromUnit, toUnit) {
+        // Multiply by the unit
+        num = (num * this.conversion[fromUnit]);
+
+        // Divide by the expected unit and round the result
+        return Math.round(num / this.conversion[toUnit]);
     },
 
     parseDimensions: function(text, flip) {
