@@ -136,7 +136,7 @@ module.exports = {
         num = (num * this.conversion[fromUnit]);
 
         // Divide by the expected unit and round the result
-        return Math.round(num / this.conversion[toUnit]);
+        return +(num / this.conversion[toUnit]).toFixed(2);
     },
 
     parseDimensions: function(text, flip) {
