@@ -1,5 +1,7 @@
-var parseFraction = function(num) {
-    var parts = num.split("/");
+"use strict";
+
+const parseFraction = function(num) {
+    const parts = num.split("/");
     return parseFloat(parts[0]) / parseFloat(parts[1]);
 };
 
@@ -7,47 +9,63 @@ module.exports = {
     extraRules: [
         [/\((.*?)\)/, function(match, dimension) {
             dimension.label = match[1];
-        }]
+        }],
     ],
 
     dimensionRules: [
-        [/([\d.]+)\s*(?:mm)?\s*x\s*([\d.]+)\s*mm/, function(match, dimension) {
+        [/([\d.]+)\s*(?:mm)?\s*[x×]\s*([\d.]+)\s*mm/i, (match, dimension) => {
             dimension.width = match[1];
             dimension.height = match[2];
         }],
-        [/([\d.]+)\s*(?:cm)?\s*x\s*([\d.]+)\s*(cm)/, function(match, dimension) {
+        [/([\d.]+)\s*(?:cm)?\s*[x×]\s*([\d.]+)\s*(cm)/i, (match, dimension) => {
             dimension.width = match[1];
             dimension.height = match[2];
             dimension.unit = match[3];
         }],
-        [/([\d.]+)\s*((?:\d+\/\d+)?)\s*(?:in)?\s*x\s*([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/, function(match, dimension) {
+        [/([\d.]+)\s*((?:\d+\/\d+)?)\s*(?:in)?\s*[x×]\s*([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/i, (match, dimension) => { // eslint-disable-line max-line
             dimension.width = (parseFloat(match[1]) +
                 (match[2] ? parseFraction(match[2]) : 0));
             dimension.height = (parseFloat(match[3]) +
                 (match[4] ? parseFraction(match[4]) : 0));
             dimension.unit = match[5];
         }],
-        [/([\d.]+)\s*(?:in)?\s*x\s*([\d.]+)\s*(in)/, function(match, dimension) {
+        [/([\d.]+)\s*(?:in)?\s*[x×]\s*([\d.]+)\s*(in)/i, (match, dimension) => {
             dimension.width = match[1];
             dimension.height = match[2];
             dimension.unit = match[3];
         }],
-        [/^([\d.]+)\s*mm/, function(match, dimension) {
+        [/^([\d.]+)\s*mm/i, (match, dimension) => {
             dimension.width = match[1];
             dimension.height = match[1];
         }],
-        [/^([\d.]+)\s*(cm)/, function(match, dimension) {
+        [/^([\d.]+)\s*(cm)/i, (match, dimension) => {
             dimension.width = match[1];
             dimension.height = match[1];
             dimension.unit = match[2];
         }],
-        [/^([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/, function(match, dimension) {
+        [/^([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/i, (match, dimension) => {
             dimension.width = (parseFloat(match[1]) +
                 (match[2] ? parseFraction(match[2]) : 0));
             dimension.height = (parseFloat(match[1]) +
                 (match[2] ? parseFraction(match[2]) : 0));
             dimension.unit = match[3];
-        }]
+        }],
+        [/diam.*?([\d.]+)\s*mm/i, (match, dimension) => {
+            dimension.width = match[1];
+            dimension.height = match[1];
+        }],
+        [/diam.*?([\d.]+)\s*(cm)/i, (match, dimension) => {
+            dimension.width = match[1];
+            dimension.height = match[1];
+            dimension.unit = match[2];
+        }],
+        [/diam.*?([\d.]+)\s*((?:\d+\/\d+)?)\s*(in)/i, (match, dimension) => {
+            dimension.width = (parseFloat(match[1]) +
+                (match[2] ? parseFraction(match[2]) : 0));
+            dimension.height = (parseFloat(match[1]) +
+                (match[2] ? parseFraction(match[2]) : 0));
+            dimension.unit = match[3];
+        }],
     ],
 
     conversion: {
@@ -55,22 +73,21 @@ module.exports = {
         in: 25.4,
         m: 1000,
         cm: 10,
-        mm: 1
+        mm: 1,
     },
 
-    parseDimension: function(str, flip, unit) {
+    parseDimension(str, flip, unit) {
         unit = unit || "mm";
 
-        var dimension = {
+        let dimension = {
             original: str,
-            unit: unit
+            unit: unit,
         };
 
         str = this.cleanString(str);
 
-        for (var i = 0; i < this.dimensionRules.length; i++) {
-            var rule = this.dimensionRules[i];
-            var match = rule[0].exec(str);
+        for (const rule of this.dimensionRules) {
+            const match = rule[0].exec(str);
             if (match) {
                 if (this.debug) {
                     console.log("hit", rule[0]);
@@ -87,9 +104,8 @@ module.exports = {
             }
         }
 
-        for (var i = 0; i < this.extraRules.length; i++) {
-            var rule = this.extraRules[i];
-            var match = rule[0].exec(str);
+        for (const rule of this.extraRules) {
+            const match = rule[0].exec(str);
             if (match) {
                 if (this.debug) {
                     console.log("extra hit", rule[0]);
@@ -101,7 +117,7 @@ module.exports = {
 
         // Flip the width/height, if requested
         if (flip) {
-            var tmp = dimension.width;
+            const tmp = dimension.width;
             dimension.width = dimension.height;
             dimension.height = tmp;
         }
@@ -110,10 +126,10 @@ module.exports = {
     },
 
     // Converts all dimensions to be in the specified unit
-    convertDimension: function(dimension, unit) {
+    convertDimension(dimension, unit) {
         unit = unit || "mm";
 
-        for (var prop in dimension) {
+        for (const prop in dimension) {
             if (typeof dimension[prop] === "string" &&
                     prop !== "original" && prop !== "unit") {
                 dimension[prop] = parseFloat(dimension[prop]);
@@ -131,41 +147,37 @@ module.exports = {
     },
 
     // Convert a single number from one unit to another
-    convertNumber: function(num, fromUnit, toUnit) {
+    convertNumber(num, fromUnit, toUnit) {
         // Multiply by the unit
-        num = (num * this.conversion[fromUnit]);
+        num = (num * this.conversion[fromUnit.toLowerCase()]);
 
         // Divide by the expected unit and round the result
         return +(num / this.conversion[toUnit]).toFixed(2);
     },
 
-    parseDimensions: function(text, flip) {
-        text = text.replace(/\(.*?\)/g, function(match) {
-            return match.replace(/;/g, ",");
-        });
+    parseDimensions(text, flip) {
+        text = text.replace(/\(.*?\)/g, (match) => match.replace(/;/g, ","));
 
-        var parts = text.split(/\s*;\s*/);
-
-        return parts.map(function(part) {
-            return this.parseDimension(part, flip);
-        }.bind(this));
+        const parts = text.split(/\s*;\s*/);
+        return parts.map((part) => this.parseDimension(part, flip));
     },
 
-    stripPunctuation: function(str) {
+    stripPunctuation(str) {
         return str
             .replace(/(\d),(\d)/g, "$1.$2")
             .replace(/\s+/, " ")
+            .replace(/[\[\]]/g, " ")
             .trim();
     },
 
-    moveParens: function(str) {
+    moveParens(str) {
         return str.replace(/(\(.*?\))(.+)$/, "$2 $1");
     },
 
-    cleanString: function(str) {
+    cleanString(str) {
         //str = str.toLowerCase();
         str = this.moveParens(str);
         str = this.stripPunctuation(str);
         return str;
-    }
+    },
 };
