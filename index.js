@@ -129,6 +129,11 @@ module.exports = {
     convertDimension(dimension, unit) {
         unit = unit || "mm";
 
+        // Bail if no dimension is provided
+        if (!dimension.unit) {
+            return dimension;
+        }
+
         for (const prop in dimension) {
             if (typeof dimension[prop] === "string" &&
                     prop !== "original" && prop !== "unit") {
